@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -11,6 +11,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
 import TextField from '@mui/material/TextField';
+import axiosClient from '../axios-client';
 
 const tableDiv = {
     display:'flex',
@@ -40,42 +41,79 @@ const addModalStyle = {
 
 const Home = () => {
 
-    const products = [
-       {
-        id:'1',
-        name:'milk',
-        description:'powdered milk full fat'
-       },
-       {
-        id:'2',
-        name:'oats',
-        description:'steel cut oats'
-       },
-       {
-        id:'3',
-        name:'cedars',
-        description:' smoking causes cancer'
-       },
-       {
-        id:'4',
-        name:'rice',
-        description:'basmate rice long white grain'
-       },
-    ]
+    // const products = [
+    //    {
+    //     id:'1',
+    //     name:'milk',
+    //     description:'powdered milk full fat'
+    //    },
+    //    {
+    //     id:'2',
+    //     name:'oats',
+    //     description:'steel cut oats'
+    //    },
+    //    {
+    //     id:'3',
+    //     name:'cedars',
+    //     description:' smoking causes cancer'
+    //    },
+    //    {
+    //     id:'4',
+    //     name:'rice',
+    //     description:'basmate rice long white grain'
+    //    },
+    // ]
 
     const [open, setOpen] = React.useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
 
-    const [open2, setOpen2] = React.useState(false);
-    const handleOpen2 = () => setOpen2(true);
-    const handleClose2 = () => setOpen2(false);
+    // const [open2, setOpen2] = React.useState(false);
+    // const handleOpen2 = () => setOpen2(true);
+    // const handleClose2 = () => setOpen2(false);
 
-    const [editModalInfo , setEditModalInfo] = useState({
-        id:'',
-        name:'',
-        description:''
+    // const [editModalInfo , setEditModalInfo] = useState({
+    //     id:'',
+    //     name:'',
+    //     description:''
+    // })
+
+    const [products, setProducts] = useState([]);
+
+    useEffect(() => {
+      axiosClient.get('/products')
+      .then(({data})=> {
+        setProducts(data.products)
+      }).catch(err => {
+        console.log(err)
+      })
+    },[])
+
+    const [newProduct , setNewProduct] = useState({
+      name:"",
+      description:""
     })
+
+    const handleAddProduct = (e) => {
+      e.preventDefault();
+      axiosClient.post('/products' , newProduct)
+      .then(({data}) => {
+        console.log(data)
+        window.location.reload();
+      }).catch(err => {
+        console.log(err)
+      }) 
+    }
+
+    const handleDelete = (id) => {
+      axiosClient.delete(`/products/${id}`)
+      .then((data) => {
+        console.log(data)
+        window.location.reload();
+      }).catch(err => {
+        console.log(err)
+      }) 
+    }
 
   return (
     <div style={tableDiv} >
@@ -102,11 +140,11 @@ const Home = () => {
               <TableCell align="center">{item.name}</TableCell>
               <TableCell align="center">{item.description}</TableCell>
               <TableCell  align="center">
-              <Button style={{background:"green" , margin:'5px'}} variant="contained" onClick={() =>{
+              {/* <Button style={{background:"green" , margin:'5px'}} variant="contained" onClick={() =>{
                 handleOpen2()
                 setEditModalInfo(item)
-              }}>Edit</Button>
-              <Button style={{background:"red" , margin:'5px'}} variant="contained">Delete</Button>
+              }}>Edit</Button> */}
+              <Button onClick={() => handleDelete(item.id)} style={{background:"red" , margin:'5px'}} variant="contained">Delete</Button>
               </TableCell>
             </TableRow>
           ))}
@@ -125,14 +163,18 @@ const Home = () => {
             Add a new product
           </Typography>
 
-          <TextField  id="outlined-basic" label="Add Name" variant="outlined" />
-          <TextField  id="outlined-basic" label="Add Description" variant="outlined" />
-          <Button variant="contained">Add</Button>
+          <TextField onChange={(e) => {
+            setNewProduct({...newProduct, name:e.target.value})
+          }}  id="outlined-basic" label="Add Name" variant="outlined" />
+          <TextField onChange={(e) => {
+            setNewProduct({...newProduct, description:e.target.value})
+          }}  id="outlined-basic" label="Add Description" variant="outlined" />
+          <Button onClick={handleAddProduct} variant="contained">Add</Button>
         </Box>
       </Modal>
 
            {/* //Edit modal */}
-           <Modal
+           {/* <Modal
         open={open2}
         onClose={handleClose2}
         aria-labelledby="modal-modal-title"
@@ -147,7 +189,7 @@ const Home = () => {
           <TextField  id="outlined-basic" label={editModalInfo.description} variant="outlined" />
           <Button variant="contained">Add</Button>
         </Box>
-      </Modal>
+      </Modal> */}
     </div>
   )
 }
